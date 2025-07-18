@@ -56,7 +56,7 @@ const AgentDashboard: React.FC = () => {
             e.preventDefault();
             if (!currentQuery) { takeNextQuery(); } 
             else { speak(`Re-reading query: ${currentQuery.text}`); }
-        } else if (e.altKey) {
+        } else if (e.ctrlKey) {
             e.preventDefault();
             getAISuggestion();
         } else if (e.key === 'Shift') {
@@ -134,7 +134,7 @@ const AgentDashboard: React.FC = () => {
                             
                             <h3 className="font-bold text-lg">AI Suggested Response:</h3>
                             <p className="p-3 bg-gray-800/50 rounded-lg italic h-16">
-                                {currentQuery.aiSuggestion || "Press ALT key to generate suggestion..."}
+                                {currentQuery.aiSuggestion || "Press CTRL key to generate suggestion..."}
                             </p>
                             
                             <hr className="border-white/10" />
@@ -153,7 +153,7 @@ const AgentDashboard: React.FC = () => {
                     <h3 className="font-semibold text-lg mb-2">Keyboard Shortcuts</h3>
                     <div className="flex flex-wrap gap-4">
                         <KeyboardHint keys="SPACE" action={currentQuery ? "Re-listen to Query" : "Take Next Query"} isActive={!currentQuery} />
-                        <KeyboardHint keys="ALT" action={currentQuery?.aiSuggestion ? "Re-listen to Suggestion" : "Get AI Suggestion"} isActive={!!currentQuery} />
+                        <KeyboardHint keys="CTRL" action={currentQuery?.aiSuggestion ? "Re-listen to Suggestion" : "Get AI Suggestion"} isActive={!!currentQuery} />
                         <KeyboardHint keys="SHIFT" action="Hold to Record Response" isActive={!!currentQuery} />
                     </div>
                 </div>
