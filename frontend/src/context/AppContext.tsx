@@ -3,13 +3,6 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import axios from 'axios';
 
-// --- ADD THE URLS FOR YOUR DEPLOYED SERVICES ---
-// Use environment variables for flexibility
-const AI_SERVICE_URL = import.meta.env.VITE_AI_SERVICE_URL || 'http://localhost:5000';
-const BACKEND_API_URL = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:8000';
-// ---------------------------------------------
-
-
 // --- Types remain the same ---
 interface User { name: string; email: string; role: 'customer' | 'agent'; }
 interface Message {
@@ -59,12 +52,18 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setCurrentQuery({ ...nextQuery, status: 'in-progress' });
   };
 
+  // --- THIS IS THE MODIFIED FUNCTION ---
   const getAISuggestion = async () => {
     if (!currentQuery) { speak("No active query."); return; }
-    if (currentQuery.aiSuggestion) { speak(`AI suggestion is: ${currentQuery.aiSuggestion}`); return; }
+    
+    // If suggestion already exists, just read it aloud again.
+    if (currentQuery.aiSuggestion) {
+        speak(`AI suggestion is: ${currentQuery.aiSuggestion}`);
+        return;
+    }
 
     try {
-        const response = await axios.post(`${AI_SERVICE_URL}/predict`, { text: currentQuery.text });
+        const response = await axios.post('http://localhost:5000/predict', { text: currentQuery.text });
         const suggestedText = response.data.responseText;
         const queryWithSuggestion = { ...currentQuery, aiSuggestion: suggestedText };
         setMessageQueue(prev => prev.map(msg => msg.id === currentQuery.id ? queryWithSuggestion : msg));
@@ -75,6 +74,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         speak("Could not get AI suggestion.");
     }
   };
+  // ------------------------------------
 
   const sendReply = (messageId: number, agentResponseText: string) => {
     const originalQuestionerEmail = messageQueue.find(m => m.id === messageId)?.userEmail || '';

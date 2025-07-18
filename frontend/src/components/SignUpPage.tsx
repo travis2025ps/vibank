@@ -5,8 +5,7 @@ import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 
-// Read the backend URL from environment variables for flexibility
-const BACKEND_API_URL = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:8000';
+const API_URL = 'http://localhost:8000/api/auth';
 
 const SignUpPage: React.FC = () => {
     const navigate = useNavigate();
@@ -24,14 +23,15 @@ const SignUpPage: React.FC = () => {
         setError('');
 
         try {
-            // Use the new URL variable for the API call
-            const response = await axios.post(`${BACKEND_API_URL}/api/auth/register`, {
+            // Call the register endpoint
+            const response = await axios.post(`${API_URL}/register`, {
                 name,
                 email,
                 password,
-                role: 'customer'
+                role: 'customer' // All signups are customers
             });
 
+            // Log the user in immediately after successful registration
             login(response.data.user);
             navigate('/customer-dashboard');
 
