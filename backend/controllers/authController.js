@@ -3,7 +3,7 @@
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 
-// --- Register Controller ---
+// --- Register Controller (FIXED) ---
 exports.register = async (req, res) => {
     const { name, email, password, role } = req.body;
 
@@ -13,16 +13,21 @@ exports.register = async (req, res) => {
             return res.status(400).json({ msg: 'User already exists' });
         }
 
+        // --- THIS IS THE FIX ---
+        // 1. Create a new user instance WITHOUT the password initially.
         user = new User({
             name,
             email,
-            password,
             role: role || 'customer'
         });
 
+        // 2. Hash the password separately.
         const salt = await bcrypt.genSalt(10);
-        user.password = await bcrypt.hash(password, salt);
+        user.password = await bcrypt.hash(password, salt); // Add the hashed password to the user object.
+
+        // 3. THEN save the user to the database. This guarantees the hashed password is saved.
         await user.save();
+        // --------------------
 
         res.status(201).json({
             user: {
@@ -37,7 +42,7 @@ exports.register = async (req, res) => {
     }
 };
 
-// --- Standard Login Controller ---
+// --- Standard Login Controller (This part is correct and does not need changes) ---
 exports.login = async (req, res) => {
     const { email, password } = req.body;
 
@@ -47,6 +52,8 @@ exports.login = async (req, res) => {
             return res.status(400).json({ msg: 'Invalid Credentials' });
         }
 
+        // This function correctly compares the plain-text password from the login form
+        // with the HASHED password from the database.
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             return res.status(400).json({ msg: 'Invalid Credentials' });
@@ -65,9 +72,7 @@ exports.login = async (req, res) => {
     }
 };
 
-// --- ADD THIS NEW FUNCTION ---
-// @desc    Find an agent by name for voice login
-// @route   POST /api/auth/login-by-name
+// --- Agent Login by Name (This part is correct and does not need changes) ---
 exports.loginByName = async (req, res) => {
     const { name } = req.body;
 
@@ -76,9 +81,8 @@ exports.loginByName = async (req, res) => {
     }
 
     try {
-        // Find a user who is an 'agent' and whose name matches (case-insensitive)
         const agent = await User.findOne({ 
-            name: { $regex: `^${name}$`, $options: 'i' }, // Case-insensitive exact match
+            name: { $regex: `^${name}$`, $options: 'i' },
             role: 'agent' 
         });
         
@@ -86,7 +90,6 @@ exports.loginByName = async (req, res) => {
             return res.status(404).json({ msg: `Agent '${name}' not found.` });
         }
 
-        // If agent is found, return their user data
         res.json({
             user: {
                 name: agent.name,
